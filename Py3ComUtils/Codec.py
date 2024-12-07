@@ -308,6 +308,6 @@ class c2duuid:
             uuid += cls.BASE64[(l << 2) | (m >> 2)] + cls.BASE64[((m & 3) << 4) | r]
         return uuid
 
-def gethash(value:Union[str, bytes], hashAlgorithm:str = 'sha1', mode: str = 'hex') -> Union[str, bytes]:
+def gethash(value:Union[str, bytes], hashAlgorithm:str = 'md5', mode: str = 'hex') -> Union[str, bytes]:
     hashv = hashnew(hashAlgorithm, (value.encode('utf-8') if isinstance(value, str) else value))
     return hashv.digest() if mode == 'bytes' else hashv.hexdigest()
