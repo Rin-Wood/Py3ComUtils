@@ -1,9 +1,6 @@
-name: Conditional PyPI Upload
+name: Build and upload to PyPI
 
-on:
-  push:
-    branches:
-      - master
+on: [push]
 
 jobs:
   build:
