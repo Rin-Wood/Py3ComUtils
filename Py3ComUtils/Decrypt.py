@@ -279,7 +279,7 @@ def xxtea(data:bytes, sign:bytes, key:bytes, delta: int = 0x9e3779b9, delend: in
     delta : int
         set delta | Default 0x9e3779b9
     delend : int
-        Remove extra bytes | Default 1/True
+        Remove extra bytes | Default 1
     mode : bool
         check sign | Default True
 
