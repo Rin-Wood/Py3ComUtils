@@ -172,7 +172,7 @@ class msgundata:
                 results.append(unobj)
             elif isinstance(obj, list) and len(obj) > 0:
                 if type(obj[0]) is msgext and obj[0].code == 98:
-                    unls, unlenls, count, pos2, objb = [], [], [], 0, obj[0].data
+                    unls, unlenls, count, pos2, objb = [], [], len(obj) - 1, 0, obj[0].data
                     for _ in range(count):
                         temp, rlen = cls.unpackmsg(objb[pos2:], strict)
                         pos2 += rlen
@@ -199,7 +199,7 @@ def dmsg(data: bytes, strict: bool = False) -> Union[List[object], object, Dict[
         data (bytes): The msgpack encoded data
         strict (bool): strict_map_key | Default False
     """
-    objs = msgundata(data, strict)
+    objs = msgundata.unpack(data, strict)
     return objs[0] if len(objs) == 1 else objs
 
 def rproto(data: bytes) -> dict:
