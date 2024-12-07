@@ -2,10 +2,10 @@ from setuptools import setup
 
 setup(
     name="Py3ComUtils",
-    version="1.0.1",
+    version="1.0.2",
     author='wood',
     author_email='miraclerinwood@gmail.com',
-    py_modules=['Py3ComUtils'],
+    packages=["Py3ComUtils"],
     url='https://github.com/Rin-Wood/Py3ComUtils',
     description="A collection of commonly used utility functions for Python 3",
     long_description=open('README.md', 'rb').read().decode('utf8'),
