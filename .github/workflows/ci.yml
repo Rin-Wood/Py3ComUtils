@@ -43,7 +43,6 @@ jobs:
             dist
 
       - name: Publish to PyPI
-        if: startsWith(github.event.head_commit.message, 'RUpdate')
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
