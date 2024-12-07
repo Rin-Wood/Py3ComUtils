@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="Py3ComUtils",
-    version="1.0.0",
+    version="1.0.1",
     author='wood',
     author_email='miraclerinwood@gmail.com',
     py_modules=['Py3ComUtils'],
