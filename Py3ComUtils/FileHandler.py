@@ -1,11 +1,14 @@
 from typing import Union
 from zipfile import ZipFile
 from struct import unpack as UnPack
-from PIL.Image import frombytes, Image
 from .Codec import cline, dgzip, ctext
 from io import BytesIO, BufferedReader
+from PIL.Image import frombytes, Image, BICUBIC
 from json import load as jsonload, dump as jsdump
-from texture2ddecoder import decode_astc as dastc, decode_etc2a8 as detc2a8
+from texture2ddecoder import (
+    decode_astc as dastc, decode_etc2a8 as detc2a8, decode_etc1 as detc1, decode_etc2 as detc2, decode_etc2a1 as dect2a1,
+    decode_eacr as deacr, decode_eacr_signed as deacrs, decode_eacrg as deacrg, decode_eacrg_signed as deacrgs
+)
 
 def rbin(fp:str, number:int = 0) -> bytes:
     """Reads binary data from a file
@@ -125,17 +128,55 @@ def sastc(fp: str, data: bytes) -> None:
     else:
         sbin(fp, data)
 
-def spkm(fp: str, data: bytes) -> None:
+def pkmtoimg(data: bytes, formatnum: int, width: int, height: int, origwidth: int = None, origheight: int = None) -> Image:
+    # ETC1_RGB_NO_MIPMAPS                  0                 GL_ETC1_RGB8_OES
+    # ETC2_RGB_NO_MIPMAPS                  1                 GL_COMPRESSED_RGB8_ETC2
+    # ETC2_RGBA_NO_MIPMAPS_OLD             2, not used       -
+    # ETC2_RGBA_NO_MIPMAPS                 3                 GL_COMPRESSED_RGBA8_ETC2_EAC
+    # ETC2_RGBA1_NO_MIPMAPS                4                 GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2
+    # ETC2_R_NO_MIPMAPS                    5                 GL_COMPRESSED_R11_EAC
+    # ETC2_RG_NO_MIPMAPS                   6                 GL_COMPRESSED_RG11_EAC
+    # ETC2_R_SIGNED_NO_MIPMAPS             7                 GL_COMPRESSED_SIGNED_R11_EAC
+    # ETC2_RG_SIGNED_NO_MIPMAPS            8                 GL_COMPRESSED_SIGNED_RG11_EAC
+    if formatnum == 0:
+        func = detc1
+    elif formatnum == 1:
+        func = detc2
+    elif formatnum == 3:
+        func = detc2a8
+    elif formatnum == 4:
+        func = dect2a1
+    elif formatnum == 5:
+        func = deacr
+    elif formatnum == 6:
+        func = deacrg
+    elif formatnum == 7:
+        func = deacrs
+    elif formatnum == 8:
+        func = deacrgs
+    else:
+        raise ValueError('Unknown PKM format: invalid header')
+    origwidth = width if origwidth is None else origwidth
+    origheight = height if origheight is None else origheight
+    checksize = origwidth == width and origheight == height
+    cimg = func(data, width, height)
+    img = frombytes('RGBA', (width, height), cimg, 'raw', ('BGRA'))
+    if not checksize:
+        img.resize((origwidth, origheight), resample=BICUBIC)
+    return img
+
+def spkm(fp: str, data: bytes):
     """Saves a PKM-compressed image to a file. If not PKM, it writes the raw data
 
     Args:
         fp (str): The file path to save the image or raw data
         data (bytes): The raw data, expected to be PKM-compressed
     """
-    if data[:3] == b'PKM':
-        aa, ab, ac, ad = gu16list(data, [(8, 10), (10, 12), (12, 14), (14, 16)], 'big')
-        cimg = detc2a8(data[16:], ac, ad)
-        sbimg(fp, cimg, ac, ad, 'PNG')
+    if data.startswith((b'PKM\x2010', b'PKM\x2020')):
+        pkmformat, aa, ab, ac, ad = gu16list(data, [(6, 8), (8, 10), (10, 12), (12, 14), (14, 16)], 'big')
+        w, h, ow, oh = (ac, ad, aa, ab) if data.startswith(b'PKM\x2010') else (aa, ab, ac, ad)
+        img = pkmtoimg(data[16:], pkmformat, w, h, ow, oh)
+        img.save(fp, format='PNG')
     else:
         sbin(fp, data)
 
